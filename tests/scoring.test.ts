@@ -31,5 +31,7 @@ describe('opportunity scoring', () => {
   it('generates audit lines only from observed facts', () => {
     const audit = generateQuickAudit(candidate);
     expect(audit.some((line) => line.includes('non disponible'))).toBe(true);
+    expect(audit.some((line) => line.includes('Détail informations incomplètes'))).toBe(true);
+    expect(audit.some((line) => line.includes('téléphone'))).toBe(true);
   });
 });

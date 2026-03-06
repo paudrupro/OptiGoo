@@ -11,10 +11,17 @@ type GoogleTextSearchResult = {
   photos?: { photo_reference: string }[];
 };
 
+type GoogleAddressComponent = {
+  long_name: string;
+  short_name: string;
+  types: string[];
+};
+
 type GoogleDetailsResult = {
   place_id: string;
   name: string;
   formatted_address?: string;
+  address_components?: GoogleAddressComponent[];
   international_phone_number?: string;
   website?: string;
   rating?: number;
@@ -25,7 +32,22 @@ type GoogleDetailsResult = {
   url?: string;
 };
 
-export function inferCity(address: string | undefined, fallbackCity: string): string {
+export function inferCity(
+  address: string | undefined,
+  fallbackCity: string,
+  addressComponents?: GoogleAddressComponent[]
+): string {
+  const preferredTypes = ['locality', 'postal_town', 'administrative_area_level_3', 'administrative_area_level_2'];
+
+  if (addressComponents?.length) {
+    for (const type of preferredTypes) {
+      const component = addressComponents.find((item) => item.types.includes(type));
+      if (component?.long_name) {
+        return component.long_name;
+      }
+    }
+  }
+
   if (!address) return fallbackCity;
 
   const parts = address
@@ -41,6 +63,11 @@ export function inferCity(address: string | undefined, fallbackCity: string): st
     }
   }
 
+  const nonCountryParts = parts.filter((part) => !['france', 'fr'].includes(part.toLowerCase()));
+  if (nonCountryParts.length >= 2) {
+    return nonCountryParts[nonCountryParts.length - 1];
+  }
+
   if (parts.length >= 2) {
     return parts[parts.length - 2];
   }
@@ -52,7 +79,7 @@ function normalizeResult(details: GoogleDetailsResult, fallbackCity: string): Pl
   return {
     placeId: details.place_id,
     name: details.name,
-    city: inferCity(details.formatted_address, fallbackCity),
+    city: inferCity(details.formatted_address, fallbackCity, details.address_components),
     address: details.formatted_address ?? null,
     phone: details.international_phone_number ?? null,
     email: null,
@@ -95,7 +122,7 @@ export async function searchPlaces(query: string, city: string): Promise<PlaceRe
       detailsUrl.searchParams.set('place_id', result.place_id);
       detailsUrl.searchParams.set(
         'fields',
-        'place_id,name,formatted_address,international_phone_number,website,rating,user_ratings_total,photos,types,opening_hours,url'
+        'place_id,name,formatted_address,address_components,international_phone_number,website,rating,user_ratings_total,photos,types,opening_hours,url'
       );
       detailsUrl.searchParams.set('key', apiKey);
       const detailsResponse = await fetch(detailsUrl.toString(), { cache: 'no-store' });

@@ -7,8 +7,20 @@ function isGenericCategory(category: string | null): boolean {
   return genericCategoryKeywords.some((keyword) => lower.includes(keyword));
 }
 
-function missingCoreInfo(place: PlaceRecord): boolean {
-  return !place.phone || !place.address || place.reviewsCount === null;
+export function getMissingInfoFields(place: PlaceRecord): string[] {
+  const missingFields: string[] = [];
+
+  if (!place.phone) {
+    missingFields.push('téléphone');
+  }
+  if (!place.address) {
+    missingFields.push('adresse');
+  }
+  if (place.reviewsCount === null) {
+    missingFields.push('nombre d’avis');
+  }
+
+  return missingFields;
 }
 
 export function computeOpportunityScore(
@@ -43,9 +55,10 @@ export function computeOpportunityScore(
     reasons.push('Catégorie potentiellement générique: optimisation locale envisageable.');
   }
 
-  if (missingCoreInfo(place)) {
+  const missingFields = getMissingInfoFields(place);
+  if (missingFields.length > 0) {
     total += config.incompleteInfoScore;
-    reasons.push('Informations incomplètes: enrichissement conseillé pour améliorer la conversion.');
+    reasons.push(`Informations incomplètes: champs manquants (${missingFields.join(', ')}).`);
   }
 
   return { total, reasons };
