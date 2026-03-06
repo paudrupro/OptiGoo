@@ -1,0 +1,16 @@
+import { describe, expect, it } from 'vitest';
+import { inferCity } from '@/lib/services/placesClient';
+
+describe('inferCity', () => {
+  it('extracts city from french postal format', () => {
+    expect(inferCity('12 Rue X, 69001 Lyon, France', 'Lyon')).toBe('Lyon');
+  });
+
+  it('falls back to previous segment when postal code is missing', () => {
+    expect(inferCity('Main Street, Annecy, France', 'Annecy')).toBe('Annecy');
+  });
+
+  it('uses fallback when address is empty', () => {
+    expect(inferCity(undefined, 'Bondy')).toBe('Bondy');
+  });
+});

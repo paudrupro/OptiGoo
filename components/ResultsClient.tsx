@@ -7,7 +7,6 @@ type Company = {
   name: string;
   city: string;
   phone: string | null;
-  email: string | null;
   website: string | null;
   googleMapsUrl: string | null;
   rating: number | null;
@@ -22,6 +21,7 @@ export function ResultsClient({ searchRunId }: { searchRunId?: string }) {
   const [rows, setRows] = useState<Company[]>([]);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [minScore, setMinScore] = useState('0');
+  const [activeAudit, setActiveAudit] = useState<{ name: string; lines: string[] } | null>(null);
 
   useEffect(() => {
     const url = new URL('/api/companies', window.location.origin);
@@ -74,40 +74,65 @@ export function ResultsClient({ searchRunId }: { searchRunId?: string }) {
         <table className="min-w-full text-sm">
           <thead>
             <tr className="text-left">
-              <th></th><th>Nom</th><th>Ville</th><th>Téléphone</th><th>Email</th><th>Site</th><th>Fiche Google</th><th>Note</th><th>Avis</th><th>Photos</th><th>Score</th><th>Audit</th><th>Statut</th>
+              <th></th><th>Nom</th><th>Ville</th><th>Téléphone</th><th>Site</th><th>Fiche Google</th><th>Note</th><th>Avis</th><th>Photos</th><th>Score</th><th>Audit</th><th>Statut</th>
             </tr>
           </thead>
           <tbody>
-            {rows.map((row) => (
-              <tr key={row.id} className="border-t">
-                <td>
-                  <input
-                    type="checkbox"
-                    checked={selectedIds.includes(row.id)}
-                    onChange={(e) => {
-                      setSelectedIds((prev) =>
-                        e.target.checked ? [...prev, row.id] : prev.filter((id) => id !== row.id)
-                      );
-                    }}
-                  />
-                </td>
-                <td>{row.name}</td>
-                <td>{row.city}</td>
-                <td>{row.phone ?? ''}</td>
-                <td>{row.email ?? ''}</td>
-                <td>{row.website ? <a href={row.website} target="_blank" rel="noreferrer">Site</a> : ''}</td>
-                <td>{row.googleMapsUrl ? <a href={row.googleMapsUrl} target="_blank" rel="noreferrer">Voir la fiche</a> : 'non disponible'}</td>
-                <td>{row.rating ?? 'non disponible'}</td>
-                <td>{row.reviewsCount ?? 'non disponible'}</td>
-                <td>{row.photosCount ?? 0}</td>
-                <td>{row.opportunityScore}</td>
-                <td>{(JSON.parse(row.quickAuditJson) as string[]).slice(0, 2).join(' | ')}</td>
-                <td>{row.contactStatus}</td>
-              </tr>
-            ))}
+            {rows.map((row) => {
+              const auditLines = JSON.parse(row.quickAuditJson) as string[];
+              return (
+                <tr key={row.id} className="border-t">
+                  <td>
+                    <input
+                      type="checkbox"
+                      checked={selectedIds.includes(row.id)}
+                      onChange={(e) => {
+                        setSelectedIds((prev) =>
+                          e.target.checked ? [...prev, row.id] : prev.filter((id) => id !== row.id)
+                        );
+                      }}
+                    />
+                  </td>
+                  <td>{row.name}</td>
+                  <td>{row.city}</td>
+                  <td>{row.phone ?? ''}</td>
+                  <td>{row.website ? <a href={row.website} target="_blank" rel="noreferrer">Site</a> : ''}</td>
+                  <td>{row.googleMapsUrl ? <a href={row.googleMapsUrl} target="_blank" rel="noreferrer">Voir la fiche</a> : 'non disponible'}</td>
+                  <td>{row.rating ?? 'non disponible'}</td>
+                  <td>{row.reviewsCount ?? 'non disponible'}</td>
+                  <td>{row.photosCount ?? 0}</td>
+                  <td>{row.opportunityScore}</td>
+                  <td>
+                    <button
+                      className="rounded border border-slate-300 px-2 py-1 text-xs hover:bg-slate-100"
+                      onClick={() => setActiveAudit({ name: row.name, lines: auditLines })}
+                    >
+                      Voir audit complet
+                    </button>
+                  </td>
+                  <td>{row.contactStatus}</td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
+
+      {activeAudit && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={() => setActiveAudit(null)}>
+          <div className="w-full max-w-xl rounded-lg bg-white p-4 shadow-lg" onClick={(e) => e.stopPropagation()}>
+            <div className="mb-3 flex items-center justify-between">
+              <h3 className="text-lg font-semibold">Audit complet — {activeAudit.name}</h3>
+              <button className="rounded border border-slate-300 px-2 py-1 text-sm" onClick={() => setActiveAudit(null)}>Fermer</button>
+            </div>
+            <ul className="list-disc space-y-1 pl-5 text-sm">
+              {activeAudit.lines.map((line) => (
+                <li key={line}>{line}</li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      )}
 
       <div className="card">
         <h2 className="font-semibold">Génération rapide de message</h2>

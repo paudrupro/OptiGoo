@@ -25,10 +25,27 @@ type GoogleDetailsResult = {
   url?: string;
 };
 
-function inferCity(address: string | undefined, fallbackCity: string): string {
+export function inferCity(address: string | undefined, fallbackCity: string): string {
   if (!address) return fallbackCity;
-  const parts = address.split(',').map((s) => s.trim());
-  return parts[parts.length - 1] ?? fallbackCity;
+
+  const parts = address
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
+
+  const postalCityPart = parts.find((part) => /\b\d{5}\s+/.test(part));
+  if (postalCityPart) {
+    const match = postalCityPart.match(/\b\d{5}\s+(.+)/);
+    if (match?.[1]) {
+      return match[1].trim();
+    }
+  }
+
+  if (parts.length >= 2) {
+    return parts[parts.length - 2];
+  }
+
+  return fallbackCity;
 }
 
 function normalizeResult(details: GoogleDetailsResult, fallbackCity: string): PlaceRecord {
