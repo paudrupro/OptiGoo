@@ -9,6 +9,7 @@ type Company = {
   phone: string | null;
   email: string | null;
   website: string | null;
+  googleMapsUrl: string | null;
   rating: number | null;
   reviewsCount: number | null;
   photosCount: number | null;
@@ -73,7 +74,7 @@ export function ResultsClient({ searchRunId }: { searchRunId?: string }) {
         <table className="min-w-full text-sm">
           <thead>
             <tr className="text-left">
-              <th></th><th>Nom</th><th>Ville</th><th>Téléphone</th><th>Email</th><th>Site</th><th>Note</th><th>Avis</th><th>Photos</th><th>Score</th><th>Audit</th><th>Statut</th>
+              <th></th><th>Nom</th><th>Ville</th><th>Téléphone</th><th>Email</th><th>Site</th><th>Fiche Google</th><th>Note</th><th>Avis</th><th>Photos</th><th>Score</th><th>Audit</th><th>Statut</th>
             </tr>
           </thead>
           <tbody>
@@ -94,7 +95,8 @@ export function ResultsClient({ searchRunId }: { searchRunId?: string }) {
                 <td>{row.city}</td>
                 <td>{row.phone ?? ''}</td>
                 <td>{row.email ?? ''}</td>
-                <td>{row.website ? <a href={row.website}>{row.website}</a> : ''}</td>
+                <td>{row.website ? <a href={row.website} target="_blank" rel="noreferrer">Site</a> : ''}</td>
+                <td>{row.googleMapsUrl ? <a href={row.googleMapsUrl} target="_blank" rel="noreferrer">Voir la fiche</a> : 'non disponible'}</td>
                 <td>{row.rating ?? 'non disponible'}</td>
                 <td>{row.reviewsCount ?? 'non disponible'}</td>
                 <td>{row.photosCount ?? 0}</td>

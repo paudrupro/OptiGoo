@@ -81,6 +81,7 @@ npm install
 cp .env.example .env
 npx prisma generate
 npx prisma db push
+# (si erreur DATABASE_URL: vérifier que le fichier .env existe à la racine)
 npm run db:seed
 npm run dev
 ```
