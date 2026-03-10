@@ -70,7 +70,7 @@ Exports:
 2. Activer **Places API**.
 3. Créer une clé API restreinte.
 4. Renseigner `.env`:
-   - `GOOGLE_PLACES_API_KEY=...`
+   - `GOOGLE_MAPS_SERVER_API_KEY=...`
    - `USE_MOCK_DATA=false`
 5. Respecter quotas, coûts, politiques d’attribution Google Maps Platform.
 
@@ -121,8 +121,9 @@ Tous les seuils sont modifiables dans l’écran **Scoring**.
 ## 11) Variables d’environnement (Vercel)
 
 - `DATABASE_URL` : URL PostgreSQL de production (Neon, Supabase, RDS, etc.)
-- `GOOGLE_PLACES_API_KEY` : clé API Google Places
+- `GOOGLE_MAPS_SERVER_API_KEY` : clé API Google Places
 - `USE_MOCK_DATA=false` en production
+- `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` : clé publique pour composants front Google Maps (si carte côté client)
 
 ## 12) Commandes migration / déploiement
 
@@ -142,3 +143,16 @@ npm run build
 - Les routes API Prisma sont forcées en runtime Node dynamique (`force-dynamic` + `runtime = 'nodejs'`).
 - Les pages server qui lisent la DB (`/companies/[id]`, `/history`, `/settings`, `/templates`) sont aussi dynamiques pour éviter les accès DB au build.
 - `app/companies/[id]/page.tsx` n'utilise pas `generateStaticParams` et appelle `notFound()` si l'entité est absente.
+
+## 14) Configuration locale (.env.local)
+
+Créer un fichier `.env.local` (non versionné) :
+
+```env
+DATABASE_URL="postgresql://USER:PASSWORD@HOST:5432/DB?schema=public"
+GOOGLE_MAPS_SERVER_API_KEY="votre_cle_serveur"
+NEXT_PUBLIC_GOOGLE_MAPS_API_KEY="votre_cle_publique_si_carte_front"
+USE_MOCK_DATA="false"
+```
+
+Si la clé serveur est absente, l'application bascule sur le dataset mock et écrit un warning explicite en logs serveur.

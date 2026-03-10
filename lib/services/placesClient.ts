@@ -32,6 +32,15 @@ type GoogleDetailsResult = {
   url?: string;
 };
 
+function getGoogleMapsServerApiKey(): string | null {
+  const key = process.env.GOOGLE_MAPS_SERVER_API_KEY?.trim();
+  if (!key) {
+    console.warn('[placesClient] GOOGLE_MAPS_SERVER_API_KEY is missing. Falling back to mock data.');
+    return null;
+  }
+  return key;
+}
+
 export function inferCity(
   address: string | undefined,
   fallbackCity: string,
@@ -96,14 +105,15 @@ function normalizeResult(details: GoogleDetailsResult, fallbackCity: string): Pl
 }
 
 export async function searchPlaces(query: string, city: string): Promise<PlaceRecord[]> {
-  if (process.env.USE_MOCK_DATA === 'true' || !process.env.GOOGLE_PLACES_API_KEY) {
+  const apiKey = getGoogleMapsServerApiKey();
+
+  if (process.env.USE_MOCK_DATA === 'true' || !apiKey) {
     const lowerQuery = query.toLowerCase();
     return mockPlaces.filter((place) =>
       place.city.toLowerCase().includes(city.toLowerCase()) || place.name.toLowerCase().includes(lowerQuery)
     );
   }
 
-  const apiKey = process.env.GOOGLE_PLACES_API_KEY;
   const textSearchUrl = new URL('https://maps.googleapis.com/maps/api/place/textsearch/json');
   textSearchUrl.searchParams.set('query', `${query} ${city}`);
   textSearchUrl.searchParams.set('key', apiKey);
