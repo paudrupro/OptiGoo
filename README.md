@@ -112,3 +112,9 @@ Tous les seuils sont modifiables dans l’écran **Scoring**.
 - Validation des entrées API (`zod`).
 - Erreurs API renvoyées explicitement.
 
+## 10) Déploiement (Vercel)
+
+- Les routes API Prisma sont forcées en **runtime Node.js dynamique** (`force-dynamic`) pour éviter la collecte statique de données au build.
+- Vérifier que `DATABASE_URL` est défini dans les variables d’environnement du projet (Build + Runtime).
+- Pour la production, préférer PostgreSQL managé plutôt que SQLite local.
+
