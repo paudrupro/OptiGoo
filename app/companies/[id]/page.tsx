@@ -1,10 +1,14 @@
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
+import { notFound } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
 
 export default async function CompanyDetailPage({ params }: { params: { id: string } }) {
   const company = await prisma.company.findUnique({ where: { id: params.id } });
 
   if (!company) {
-    return <p>Entreprise non trouvée.</p>;
+    notFound();
   }
 
   return (

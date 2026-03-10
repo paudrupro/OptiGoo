@@ -1,3 +1,6 @@
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 import { prisma } from '@/lib/prisma';
 
 async function updateConfig(formData: FormData) {

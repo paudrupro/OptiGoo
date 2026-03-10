@@ -6,7 +6,7 @@ Application full-stack pour identifier des opportunités d'amélioration de visi
 
 ### Stack retenue
 - **Frontend + backend**: Next.js 14 (App Router, API Routes, Server Actions), TypeScript strict, Tailwind CSS
-- **DB**: Prisma ORM + SQLite en local (migration vers PostgreSQL facilitée via `schema.prisma`)
+- **DB**: Prisma ORM + PostgreSQL (`DATABASE_URL`)
 - **Tests**: Vitest (logique scoring + audit)
 
 ### Modules
@@ -74,14 +74,13 @@ Exports:
    - `USE_MOCK_DATA=false`
 5. Respecter quotas, coûts, politiques d’attribution Google Maps Platform.
 
-## 6) Lancement local immédiat
+## 6) Lancement local immédiat (PostgreSQL)
 
 ```bash
 npm install
 cp .env.example .env
 npx prisma generate
-npx prisma db push
-# (si erreur DATABASE_URL: vérifier que le fichier .env existe à la racine)
+npx prisma migrate dev --name init_postgresql
 npm run db:seed
 npm run dev
 ```
@@ -118,3 +117,28 @@ Tous les seuils sont modifiables dans l’écran **Scoring**.
 - Vérifier que `DATABASE_URL` est défini dans les variables d’environnement du projet (Build + Runtime).
 - Pour la production, préférer PostgreSQL managé plutôt que SQLite local.
 
+
+## 11) Variables d’environnement (Vercel)
+
+- `DATABASE_URL` : URL PostgreSQL de production (Neon, Supabase, RDS, etc.)
+- `GOOGLE_PLACES_API_KEY` : clé API Google Places
+- `USE_MOCK_DATA=false` en production
+
+## 12) Commandes migration / déploiement
+
+```bash
+# Local
+npx prisma generate
+npx prisma migrate dev --name init_postgresql
+
+# CI/Production (Vercel)
+npx prisma generate
+npx prisma migrate deploy
+npm run build
+```
+
+## 13) Compatibilité Vercel App Router
+
+- Les routes API Prisma sont forcées en runtime Node dynamique (`force-dynamic` + `runtime = 'nodejs'`).
+- Les pages server qui lisent la DB (`/companies/[id]`, `/history`, `/settings`, `/templates`) sont aussi dynamiques pour éviter les accès DB au build.
+- `app/companies/[id]/page.tsx` n'utilise pas `generateStaticParams` et appelle `notFound()` si l'entité est absente.
