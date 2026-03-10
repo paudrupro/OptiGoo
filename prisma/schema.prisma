@@ -1,0 +1,73 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model SearchRun {
+  id         String   @id @default(cuid())
+  query      String
+  city       String
+  source     String
+  createdAt  DateTime @default(now())
+  totalFound Int
+  companies  Company[]
+}
+
+model Company {
+  id                  String   @id @default(cuid())
+  searchRunId         String
+  placeId             String
+  name                String
+  city                String
+  address             String?
+  phone               String?
+  email               String?
+  website             String?
+  rating              Float?
+  reviewsCount        Int?
+  photosCount         Int?
+  hasPhotos           Boolean  @default(false)
+  category            String?
+  openingHoursJson    String?
+  googleMapsUrl       String?
+  opportunityScore    Int
+  quickAuditJson      String
+  observations        String?
+  contactStatus       String   @default("new")
+  createdAt           DateTime @default(now())
+
+  searchRun SearchRun @relation(fields: [searchRunId], references: [id], onDelete: Cascade)
+
+  @@index([searchRunId])
+  @@index([placeId])
+}
+
+model ScoringConfig {
+  id                         String @id @default("default")
+  reviewRangeMin             Int    @default(5)
+  reviewRangeMax             Int    @default(10)
+  reviewRangeScore           Int    @default(30)
+  missingWebsiteScore        Int    @default(20)
+  lowPhotosThreshold         Int    @default(3)
+  lowPhotosScore             Int    @default(20)
+  ratingMin                  Float  @default(4.0)
+  ratingMax                  Float  @default(4.7)
+  ratingRangeScore           Int    @default(10)
+  genericCategoryScore       Int    @default(10)
+  incompleteInfoScore        Int    @default(10)
+  minInterestingScore        Int    @default(40)
+}
+
+model MessageTemplate {
+  id        String   @id @default(cuid())
+  name      String
+  type      String
+  subject   String?
+  body      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
